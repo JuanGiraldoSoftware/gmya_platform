@@ -444,6 +444,16 @@ def analizar(extracto, libro, ventana_dias=15,
         seccion, aviso = elegir_seccion_libro(libro, extracto["cuenta"])
         if aviso:
             avisos.append(aviso)
+    if libro.get("no_leidas"):
+        # v6.10.1: lineas de HELISA con fecha y valores que no se pudieron
+        # interpretar: quedan por fuera de la conciliacion; se avisa.
+        n = len(libro["no_leidas"])
+        avisos.append(
+            f"HELISA: {n} línea{'s' if n != 1 else ''} de movimiento no se "
+            "pudo leer y quedó por fuera de la conciliación (revisa el "
+            "formato o reporta el error): "
+            + "; ".join(libro["no_leidas"][:5])
+            + ("…" if n > 5 else ""))
 
     categorias = construir_categorias(palabras_extra)
 

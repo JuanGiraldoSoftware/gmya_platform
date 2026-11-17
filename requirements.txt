@@ -1,4 +1,4 @@
-# GMYA Tools v6.10 - Plataforma de automatizacion contable
+# GMYA Tools v6.10.1 - Plataforma de automatizacion contable
 # Instalar con:  pip install -r requirements.txt
 # Ejecutar con:  streamlit run app.py      (desarrollo)
 #                python run_gmyatools.py   (igual que el .exe)

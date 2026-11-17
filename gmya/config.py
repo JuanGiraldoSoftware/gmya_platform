@@ -36,7 +36,7 @@ ICONO = resource_path("gmya.ico")
 FIRMA = "GMYA"
 RAZON_SOCIAL = "Giraldo Mosquera y Asociados SAS"
 PRODUCTO = "Plataforma de automatización contable"
-VERSION = "v6.10"
+VERSION = "v6.10.1"
 
 # Logos en version clara (para fondos oscuros). Si existe la carpeta
 # assets junto al aplicativo se usan esos archivos; si no, los incrustados.

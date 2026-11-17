@@ -1,1 +1,3 @@
 .venv
+*.zip
+dist_tools_v2

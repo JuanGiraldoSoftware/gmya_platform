@@ -242,6 +242,32 @@ def construir_excel_simplificado(analisis):
                       f" en el reporte DIAN ({nombres}); ver "
                       "lista abajo.")
 
+        # v6.10.1: impuesto al consumo que el sistema discrimina y la DIAN
+        # trae dentro del total con INC en 0 (p. ej. COLOMBIA
+        # TELECOMUNICACIONES): se suma del lado DIAN en la columna INC.
+        f_incnd = None
+        inc_nd_docs = [d for d in (resultado.get("documentos_helisa") or [])
+                       if d.get("inc_no_discriminado")] if detalle else []
+        if inc_nd_docs and c_inc:
+            fila += 1
+            f_incnd = fila
+            hoja.cell(fila, c_etq, "INC NO DISCRIMINADO EN DIAN")
+            hoja.cell(fila, c_inc, round(sum(d["inc_no_discriminado"]
+                                             for d in inc_nd_docs), 2))
+            formato_valores(fila, normal)
+            for c in range(1, c_obs + 1):
+                hoja.cell(fila, c).fill = relleno(AZUL_ALERTA)
+            nombres = ", ".join(sorted({str(d["beneficiario"]).strip()
+                                        for d in inc_nd_docs}))[:150]
+            hoja.cell(fila, c_obs,
+                      f"Impuesto al consumo de {len(inc_nd_docs)} documento"
+                      f"{'' if len(inc_nd_docs) == 1 else 's'} ("
+                      + ", ".join(str(d["documento"]).split()[-1]
+                                  for d in inc_nd_docs)[:120]
+                      + f") de {nombres}: el sistema lo discrimina y la DIAN "
+                      "lo reporta dentro del total (INC en 0). El total del "
+                      "documento cuadra. Revisar.")
+
         # TOTAL DIAN
         fila += 1
         f_total = fila
@@ -252,7 +278,9 @@ def construir_excel_simplificado(analisis):
                       + (f"+{L(c)}{f_asum}" if f_asum and c == c_total
                          else "")
                       + (f"+{L(c)}{f_nodian}" if f_nodian and (
-                          c in (c_iva, c_inc, c_total)) else ""))
+                          c in (c_iva, c_inc, c_total)) else "")
+                      + (f"+{L(c)}{f_incnd}" if f_incnd and c == c_inc
+                         else ""))
         for c in range(c_etq, c_total + 1):
             hoja.cell(fila, c).fill = relleno(AMARILLO)
         formato_valores(fila, negrita)

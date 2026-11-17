@@ -599,12 +599,33 @@ def _bloque_totales_compras(hoja, resultado, cabecera, ultima, hoja_helisa,
     hoja.cell(fila, c_total, f"=-{ref}{col['nd']}{t}")
     for c in range(c_etq, c_total + 1):
         hoja.cell(fila, c).fill = relleno(AZUL_NO_DIAN)
+    f_ultimo_ajuste = f_no_dian
+
+    # v6.10.1: impuesto al consumo que HELISA discrimina y la DIAN trae
+    # dentro del total con INC en 0 (p. ej. COLOMBIA TELECOMUNICACIONES).
+    inc_nd = resultado.get("inc_no_discriminado") or 0.0
+    if inc_nd and c_inc:
+        fila += 1
+        f_ultimo_ajuste = fila
+        hoja.cell(fila, c_etq, "MENOS INC NO DISCRIMINADO EN DIAN")
+        hoja.cell(fila, c_inc, -inc_nd)
+        for c in range(c_etq, c_total + 1):
+            hoja.cell(fila, c).fill = relleno(AZUL_NO_DIAN)
+        nombres = ", ".join(sorted({
+            str(d.get("beneficiario") or "").strip()
+            for d in resultado.get("documentos_helisa") or []
+            if d.get("inc_no_discriminado")}))[:120]
+        hoja.cell(fila, c_total + 1,
+                  f"Impuesto al consumo discriminado en HELISA que la DIAN "
+                  f"reporta dentro del total (INC en 0): {nombres}. "
+                  "Revisar.").font = fuente_cuerpo
 
     fila += 1
     f_final = fila
     hoja.cell(fila, c_etq, f"TOTAL {clave} HELISA")
     for c in range(c_iva, c_total + 1):
-        hoja.cell(fila, c, f"=SUM({L(c)}{f_helisa}:{L(c)}{f_no_dian})")
+        hoja.cell(fila, c,
+                  f"=SUM({L(c)}{f_helisa}:{L(c)}{f_ultimo_ajuste})")
     for c in range(c_etq, c_total + 1):
         hoja.cell(fila, c).font = fuente_negrita
         hoja.cell(fila, c).border = borde_medio
@@ -1046,6 +1067,8 @@ def partidas_para_revisar(analisis):
         for doc in resultado["documentos_helisa"]:
             if doc["estado"] in ("ok", "redondeo") and \
                     doc.get("nivel") != 4 and not doc["no_deducible"] and \
+                    not doc.get("inc_no_discriminado") and \
+                    not doc.get("dif_inc") and \
                     dentro_de(doc.get("dif_iva") or 0,
                               TOLERANCIA_IVA_DOCUMENTO):
                 continue

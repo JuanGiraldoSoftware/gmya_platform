@@ -606,6 +606,40 @@ def analizar_dian(reporte, informes_helisa, parametros=None):
                     if usa_acuses(concepto) else None)
                 acuses = info_acuses["marcas"] if info_acuses else {}
 
+                # v6.10.1: impuesto al consumo por documento. Algunos
+                # proveedores (p. ej. COLOMBIA TELECOMUNICACIONES) lo
+                # discriminan en la factura y en HELISA, pero el reporte
+                # DIAN trae INC en 0 (va dentro del total). Si el total
+                # cruza, se identifica como INC NO DISCRIMINADO EN DIAN
+                # (como las facturas NO DIAN) y se alerta; nunca se asume.
+                inc_nd_docs = []
+                for j, doc in dian_a_helisa.items():
+                    doc["inc_no_discriminado"] = 0.0
+                    doc["dif_inc"] = None
+                    consumo = round(doc.get("consumo") or 0, 2)
+                    inc_d = round(numero(dato(reporte, facturas[j], "INC")),
+                                  2)
+                    if not consumo or abs(consumo - inc_d) <= RUIDO_DECIMAL:
+                        continue
+                    if not inc_d and doc["estado"] in ("ok", "redondeo"):
+                        doc["inc_no_discriminado"] = consumo
+                        inc_nd_docs.append(doc)
+                    else:
+                        doc["dif_inc"] = (inc_d, consumo)
+                inc_no_discriminado = round(sum(
+                    d["inc_no_discriminado"] for d in inc_nd_docs), 2)
+                if inc_nd_docs:
+                    avisos.append(
+                        f"{clave}: {len(inc_nd_docs)} documento"
+                        f"{'' if len(inc_nd_docs) == 1 else 's'} con "
+                        f"impuesto al consumo en HELISA "
+                        f"({formato_cop(inc_no_discriminado)}) que el "
+                        "reporte DIAN trae con INC en 0 aunque el total "
+                        "cuadra (" + ", ".join(sorted({
+                            str(d.get("beneficiario") or "").strip()
+                            for d in inc_nd_docs}))[:150]
+                        + "): se identifican en la fila INC NO DISCRIMINADO "
+                        "EN DIAN. Revisar.")
                 iva_helisa = round(sum(d["iva"] for d in docs), 2)
                 consumo_helisa = round(sum(d["consumo"] for d in docs), 2)
                 iva_no_dian = round(sum(d["iva"] for d in docs
@@ -624,6 +658,7 @@ def analizar_dian(reporte, informes_helisa, parametros=None):
                     iva_helisa=round(iva_helisa - iva_no_dian, 2),
                     iva_helisa_bruto=iva_helisa, iva_no_dian=iva_no_dian,
                     consumo_helisa=consumo_helisa, consumo_dian=consumo_dian,
+                    inc_no_discriminado=inc_no_discriminado,
                     no_dian=no_dian,
                     diferencia_total=round(total_dian - total_ajustado, 2),
                     diferencia_iva=round(iva_dian - (iva_helisa - iva_no_dian),
@@ -1096,6 +1131,12 @@ def observacion_documento(doc, info_dian):
                       f"SE COMPARA EL NETO "
                       f"{doc['total_debito'] - doc['cruce_interno']:,.2f}; "
                       f"CRUCE {doc['cruce_interno']:,.2f} A NO DIAN")
+    if doc.get("inc_no_discriminado"):
+        partes.append(f"IMPUESTO AL CONSUMO {doc['inc_no_discriminado']:,.2f}"
+                      " NO DISCRIMINADO EN LA DIAN (EL TOTAL CUADRA)")
+    elif doc.get("dif_inc"):
+        partes.append(f"INC DIAN {doc['dif_inc'][0]:,.2f} VS HELISA "
+                      f"{doc['dif_inc'][1]:,.2f}: REVISAR")
     if doc.get("nit_distinto"):
         nh, nd = doc["nit_distinto"]
         partes.append(f"NIT EN HELISA {nh} VS DIAN {nd}"

@@ -266,6 +266,14 @@ def alerta_documento_dian(resultado, j, factura, reporte, formas=None):
         partes.append(f"IVA DIFERENTE: DIAN {doc['iva_dian']:,.2f} VS "
                       f"HELISA {doc['iva']:,.2f}")
         alerta = True
+    if doc.get("inc_no_discriminado"):
+        partes.append(f"INC {doc['inc_no_discriminado']:,.2f} EN HELISA; LA "
+                      "DIAN LO TRAE DENTRO DEL TOTAL (INC EN 0)")
+        alerta = True
+    elif doc.get("dif_inc"):
+        partes.append(f"INC DIFERENTE: DIAN {doc['dif_inc'][0]:,.2f} VS "
+                      f"HELISA {doc['dif_inc'][1]:,.2f}")
+        alerta = True
     if doc.get("no_deducible"):
         partes.append("GASTO NO DEDUCIBLE")
         alerta = True

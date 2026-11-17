@@ -775,12 +775,16 @@ def leer_extracto_pdf(contenido, anio_defecto=None):
 # en numero (01/10/2026, "Libro Auxiliar" de HELISA NIIF, sin tercero).
 # v6.9.2: el numero del comprobante puede terminar en letras (DUMA, cuenta
 # Bold: "PE 00000000058B") y la fecha puede venir pegada al tipo
-# ("03/OCT/2026PE").
+# ("03/OCT/2026PE"). v6.10.1: o en guion y consecutivo ("PE
+# 0000001225-1", GMYA).
 RE_HELISA_FILA = re.compile(
     r"^(\d{1,2})/\s*([A-Za-z]{3,4}|\d{1,2})/\s*(\d{4})\s*([A-Z]{1,5})\s+"
-    r"(\d+[A-Z]{0,3})\s+(?:(\d+)\s+)?(.*?)\s*(-?[\d,]+\.\d{2})\s+"
+    r"(\d+[A-Z]{0,3}(?:-[0-9A-Z]{1,4})?)\s+(?:(\d+)\s+)?(.*?)\s*"
+    r"(-?[\d,]+\.\d{2})\s+"
     r"(-?[\d,]+\.\d{2})\s+(-?[\d,]+\.\d{2})\s*$"
 )
+RE_HELISA_INICIO_FECHA = re.compile(
+    r"^\d{1,2}/\s*([A-Za-z]{3,4}|\d{1,2})/\s*\d{4}")
 RE_HELISA_SECCION = re.compile(
     r"^(.*?)\s*saldo\s+inicial(?:\s+a\s+(\d{1,2})/\s*([A-Za-z]{3,4}|\d{1,2})/"
     r"\s*(\d{4}))?\s+(-?[\d,]+\.\d{2})", re.IGNORECASE)
@@ -855,6 +859,7 @@ def procesar_lineas_libro(lineas, ubicaciones, paginas=None, formato="PDF"):
                        crear_fecha(int(m[6]), mes2, int(m[4])))
 
     secciones, actual = [], None
+    no_leidas = []
 
     for linea, numero_pagina, ubicacion in zip(lineas, paginas,
                                                ubicaciones):
@@ -887,6 +892,11 @@ def procesar_lineas_libro(lineas, ubicaciones, paginas=None, formato="PDF"):
             continue
 
         m = RE_HELISA_FILA.match(limpia)
+        if not m and RE_HELISA_INICIO_FECHA.match(limpia) and \
+                re.search(r"[\d,]+\.\d{2}\s*$", limpia):
+            # v6.10.1: linea de movimiento que no se pudo interpretar: se
+            # avisa (nunca se pierde en silencio).
+            no_leidas.append(f"{ubicacion}: «{limpia}»")
         if m:
             mes = _mes_abreviado(m[2])
             fecha = crear_fecha(int(m[3]), mes, int(m[1])) if mes else None
@@ -941,6 +951,7 @@ def procesar_lineas_libro(lineas, ubicaciones, paginas=None, formato="PDF"):
         "periodo": periodo,
         "secciones": secciones,
         "formato": formato,
+        "no_leidas": no_leidas,
     }
 
 
