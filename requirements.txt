@@ -1,0 +1,66 @@
+# GMYA Tools v6.23 - Plataforma de automatizacion contable
+# Instalar con:  pip install -r requirements.txt
+# Ejecutar con:  streamlit run app.py      (desarrollo)
+#                python run_gmyatools.py   (igual que el .exe)
+# Compilar:      .\compilar_firmar_empaquetar.ps1  (instala esto y PyInstaller)
+# Python 3.9 o superior.
+
+# Interfaz web (1.37 o superior: iconos del menu y progreso del indice de
+# busqueda que se actualiza solo)
+streamlit>=1.37
+
+# Lectura y escritura de Excel (.xlsx): conciliaciones bancaria y DIAN,
+# reporte DIAN y libros de salida (incluye el formato condicional que
+# resalta diferencias y alertas)
+openpyxl>=3.1
+
+# Lectura de PDF: extractos bancarios, Libro de Caja Bancos HELISA y los
+# comprobantes de diario de HELISA exportados a PDF (conciliacion DIAN)
+pdfplumber>=0.10
+
+# Dibujo de las paginas del PDF en el visor de diferencias y descargas
+# resaltadas (pdfplumber los usa; se dejan explicitos)
+pypdfium2>=4.0
+Pillow>=10.0
+
+# Lectura de .xls binarios: informes HELISA (Excel 97-2003 real, p. ej.
+# las RELACION ... de la conciliacion DIAN) y exportaciones de movimientos
+# del portal Davivienda, y en Programacion de pagos los informes
+# programacion / conceptos de HELISA y la PROG. PAGOS anterior (.xls).
+# El listado 'cuentas por pagar' de HELISA (hoja BIFF suelta, sin
+# contenedor) se lee con un lector propio: no necesita xlrd.
+# Si no esta instalado,
+# la plataforma intenta convertirlos con LibreOffice (si existe).
+xlrd>=2.0
+
+# El .zip del reporte DIAN (tal como se descarga del portal) se lee con la
+# libreria estandar de Python (zipfile): no requiere instalar nada.
+
+# Modulo Busqueda de archivos (Google Drive - Mi unidad): usa solo la
+# libreria estandar (os, subprocess) y un componente HTML propio; no
+# requiere paquetes adicionales.
+
+
+# Modulo Programacion de pagos: la tabla de revision usa pandas, que ya se
+# instala con streamlit. Para copiar con formulas las hojas auxiliares de
+# una PROG. PAGOS anterior en .xls se usa Microsoft Excel (por PowerShell)
+# o LibreOffice si estan en el equipo; no requiere paquetes adicionales.
+
+# Registro de uso por equipo (v5.3): usa solo la libreria estandar (winreg,
+# csv, platform) y la carpeta "GMYA Tools" del Drive de la firma; no
+# requiere paquetes adicionales.
+
+# Modulo Automatizaciones Odoo (v6.0): lee la factura y la relacion de
+# asegurados de SURA (PDF) con pdfplumber y arma el Excel de importacion de
+# Odoo con openpyxl; no requiere paquetes adicionales.
+
+# Modulo Pagos de nomina (v6.1): lee las planillas de pago en PDF con
+# pdfplumber y actualiza el formato de pagos del banco (.xlsx) editando
+# directamente su XML (zipfile, libreria estandar) para no perder listas,
+# validaciones ni formatos; no requiere paquetes adicionales.
+
+# v6.3: el proyecto se dividio en el paquete gmya/ (ver README.md). Las
+# dependencias no cambian.
+
+# Solo para compilar el .exe (el script de compilacion lo instala solo):
+# pyinstaller>=6.0

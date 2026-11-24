@@ -1,0 +1,34 @@
+# GMYA Tools · lo que NUNCA debe subirse al repositorio (v6.23)
+
+# Python / compilados
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.spec
+*.exe
+*.zip
+
+# Datos de clientes y de la firma
+pruebas/datos/
+datos/
+casos_privados.py
+*.json
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+*.pdf
+*.xml
+usuarios.txt
+equipos.txt
+registros/
+REGISTRO*
+.gmya/
+
+# Certificados y secretos
+*.pfx
+*.p12
+*.cer
+*.key
+.env

@@ -1,0 +1,12 @@
+# GMYA Tools · tema de Streamlit (v6.12)
+# v6.15: tema OSCURO fijo (igual aunque Windows use el claro). Los controles
+# nativos (radio, casillas, interruptores, foco, tablas, alertas) toman el
+# magenta de la marca y los colores oscuros del tablero.
+# El .exe recibe los mismos valores por linea de comandos (run_gmyatools.py).
+[theme]
+base = "dark"
+primaryColor = "#C20C7B"
+backgroundColor = "#151316"
+secondaryBackgroundColor = "#1F1C20"
+textColor = "#F4F0F2"
+font = "sans serif"
